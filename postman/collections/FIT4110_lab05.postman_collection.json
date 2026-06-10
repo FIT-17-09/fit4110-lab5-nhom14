@@ -1,0 +1,180 @@
+{
+  "info": {
+    "_postman_id": "2f0d8a7d-2fbc-4f2b-8d2a-2b4ef3b8f4aa",
+    "name": "FIT4110 Lab05 IoT Compose",
+    "description": "Postman collection for Lab 05 Docker Compose readiness checks.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "cursor"
+  },
+  "item": [
+    {
+      "name": "Health - API",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('health response has ok status', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.status).to.eql('ok');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health - AI service",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:9000/health",
+          "host": ["localhost"],
+          "port": "9000",
+          "path": ["health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('AI health status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create reading",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": 31.5,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/readings",
+          "host": ["{{baseUrl}}"],
+          "path": ["readings"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('create reading returns 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "pm.test('response contains reading_id', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('reading_id');",
+              "  pm.environment.set('readingId', body.reading_id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get latest readings",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/readings/latest?limit=5",
+          "host": ["{{baseUrl}}"],
+          "path": ["readings", "latest"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "5"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('latest readings returns 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "pm.test('items is an array', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body).to.have.property('items');",
+              "  pm.expect(body.items).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get reading by id",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/readings/{{readingId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["readings", "{{readingId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('get reading returns 200 or 404', function () {",
+              "  pm.expect([200, 404]).to.include(pm.response.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

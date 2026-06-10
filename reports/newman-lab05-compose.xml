@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="FIT4110 Lab05 IoT Compose" tests="5" time="0.124">
+  <testsuite name="Health - API" id="bc8c0feb-5def-495c-8333-b5c61d7ba99b" timestamp="2026-06-10T02:43:01.537Z" tests="2" failures="0" errors="0" time="0.063">
+    <testcase name="status is 200" time="0.063" classname="HealthApi"/>
+    <testcase name="health response has ok status" time="0.063" classname="HealthApi"/>
+  </testsuite>
+  <testsuite name="Health - AI service" id="1a189095-402e-4565-a08c-0e51f3cc7299" timestamp="2026-06-10T02:43:01.537Z" tests="1" failures="0" errors="0" time="0.011">
+    <testcase name="AI health status is 200" time="0.011" classname="HealthAiService"/>
+  </testsuite>
+  <testsuite name="Create reading" id="657d7fe2-2ecc-4a49-9130-2711542e5a2a" timestamp="2026-06-10T02:43:01.537Z" tests="2" failures="0" errors="0" time="0.039">
+    <testcase name="create reading returns 201" time="0.039" classname="CreateReading"/>
+    <testcase name="response contains reading_id" time="0.039" classname="CreateReading"/>
+  </testsuite>
+  <testsuite name="Get latest readings" id="4ae47797-dee2-4f08-87f1-d25db6c35e99" timestamp="2026-06-10T02:43:01.537Z" tests="2" failures="0" errors="0" time="0.007">
+    <testcase name="latest readings returns 200" time="0.007" classname="GetLatestReadings"/>
+    <testcase name="items is an array" time="0.007" classname="GetLatestReadings"/>
+  </testsuite>
+  <testsuite name="Get reading by id" id="ed2a42a2-8598-4809-9a8f-5584d32934d1" timestamp="2026-06-10T02:43:01.537Z" tests="1" failures="0" errors="0" time="0.004">
+    <testcase name="get reading returns 200 or 404" time="0.004" classname="GetReadingById"/>
+  </testsuite>
+</testsuites>

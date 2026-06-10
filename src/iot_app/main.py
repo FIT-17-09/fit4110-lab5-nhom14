@@ -2,16 +2,19 @@ import os
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, List, Optional
+from urllib import request as urlrequest
 
+import psycopg2
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-# Đọc biến môi trường với giá trị mặc định
 SERVICE_NAME = os.getenv("SERVICE_NAME", "iot-ingestion")
 SERVICE_VERSION = os.getenv("SERVICE_VERSION", "0.5.0")
 AUTH_TOKEN = os.getenv("AUTH_TOKEN", "local-dev-token")
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:9000")
 
 
 app = FastAPI(
@@ -188,6 +191,25 @@ def next_reading_id() -> str:
     return f"R-{today}-{len(READINGS) + 1:04d}"
 
 
+def check_database_connection() -> bool:
+    if not DATABASE_URL:
+        return False
+    try:
+        connection = psycopg2.connect(DATABASE_URL, connect_timeout=2)
+        connection.close()
+        return True
+    except Exception:
+        return False
+
+
+def check_ai_service() -> bool:
+    try:
+        with urlrequest.urlopen(f"{AI_SERVICE_URL.rstrip('/')}/health", timeout=3) as response:
+            return response.status == 200
+    except Exception:
+        return False
+
+
 @app.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     return HealthResponse(
@@ -209,9 +231,22 @@ def health() -> HealthResponse:
     },
 )
 def create_reading(payload: SensorReadingCreate, response: Response) -> SensorReadingCreated:
-    # Ví dụ logic cảnh báo: nếu nhiệt độ >= 70 thì thêm header cảnh báo
     if payload.metric == SensorMetric.temperature and payload.value >= 70:
         response.headers["X-Warning"] = "high-temperature"
+
+    db_ready = check_database_connection()
+    ai_ready = check_ai_service()
+
+    if not db_ready or not ai_ready:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=build_problem(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                title="Service unavailable",
+                detail="Database or AI service is not ready",
+                problem_type="https://smart-campus.local/problems/service-unavailable",
+            ),
+        )
 
     reading_id = next_reading_id()
     created_at = now_iso()
